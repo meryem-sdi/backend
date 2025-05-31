@@ -1,0 +1,117 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // This rule allows anyone with your Firestore database reference to view, edit,
+    // and delete all data in your Firestore database. It is useful for getting
+    // started, but it is configured to expire after 30 days because it
+    // leaves your app open to attackers. At that time, all client
+    // requests to your Firestore database will be denied.
+    //
+    // Make sure to write security rules for your app before that time, or else
+    // all client requests to your Firestore database will be denied until you Update
+    // your rules
+    match /{document=**} {
+      allow read, write: if request.time < timestamp.date(2025, 5, 17);
+    }
+
+    // Règles sur la collection "dossiers"
+    match /dossiers/{dossierId} {
+      allow create: if request.auth != null && request.auth.token.role in ['admin', 'secretaire'];
+
+      allow read: if request.auth != null &&
+        (
+          request.auth.token.role == 'admin'
+          || request.auth.token.role == 'secretaire'
+          || (request.auth.token.role == 'avocat' && resource.data.idAvocat == request.auth.uid)
+          || (request.auth.token.role == 'client' && resource.data.idClient == request.auth.uid)
+        );
+
+      allow update: if request.auth != null &&
+        (
+          request.auth.token.role == 'admin'
+          || (request.auth.token.role == 'avocat' && resource.data.idAvocat == request.auth.uid)
+        );
+
+      allow delete: if request.auth != null &&
+        (
+          request.auth.token.role == 'admin'
+          || (request.auth.token.role == 'avocat' && resource.data.idAvocat == request.auth.uid)
+        );
+
+      // Sous-collection "documents"
+      match /documents/{docId} {
+        allow read: if request.auth != null &&
+          (
+            request.auth.token.role == 'admin'
+            || request.auth.token.role == 'secretaire'
+            || (request.auth.token.role == 'avocat' && get(/databases/$(database)/documents/dossiers/$(dossierId)).data.idAvocat == request.auth.uid)
+            || (request.auth.token.role == 'client' && get(/databases/$(database)/documents/dossiers/$(dossierId)).data.idClient == request.auth.uid)
+          );
+
+        allow create, delete: if request.auth != null &&
+          (
+            request.auth.token.role == 'admin'
+            || (request.auth.token.role == 'avocat' && get(/databases/$(database)/documents/dossiers/$(dossierId)).data.idAvocat == request.auth.uid)
+          );
+      }
+
+      // Sous-collection "factures"
+      match /factures/{factureId} {
+        allow read: if request.auth != null &&
+          (
+            request.auth.token.role == 'admin'
+            || request.auth.token.role == 'secretaire'
+            || (request.auth.token.role == 'avocat' && get(/databases/$(database)/documents/dossiers/$(dossierId)).data.idAvocat == request.auth.uid)
+            || (request.auth.token.role == 'client' && get(/databases/$(database)/documents/dossiers/$(dossierId)).data.idClient == request.auth.uid)
+          );
+
+        allow create, delete: if request.auth != null &&
+          (
+            request.auth.token.role == 'admin'
+            || (request.auth.token.role == 'avocat' && get(/databases/$(database)/documents/dossiers/$(dossierId)).data.idAvocat == request.auth.uid)
+          );
+      }
+    }
+
+    // Collection "appointments"
+    match /appointments/{appointmentId} {
+      // Création autorisée si l'utilisateur est client, secrétaire ou admin
+      allow create: if request.auth != null && request.auth.token.role in ['client', 'secretaire', 'admin'];
+
+      // Lecture autorisée si :
+      // - admin / secrétaire ➔ accès à tous
+      // - avocat   ➔ idAvocat == uid
+      // - client   ➔ idClient == uid
+      allow read: if request.auth != null && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'secretaire' ||
+        (request.auth.token.role == 'avocat' && resource.data.idAvocat == request.auth.uid) ||
+        (request.auth.token.role == 'client' && resource.data.idClient == request.auth.uid)
+      );
+
+      // Mise à jour autorisée si :
+      // - admin / secrétaire ➔ ok
+      // - avocat   ➔ idAvocat == uid
+      // - client   ➔ idClient == uid ET statut == 'programmé'
+      allow update: if request.auth != null && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'secretaire' ||
+        (request.auth.token.role == 'avocat' && resource.data.idAvocat == request.auth.uid) ||
+        (request.auth.token.role == 'client' && resource.data.idClient == request.auth.uid && resource.data.statut == 'programmé')
+      );
+
+      // Suppression autorisée si :
+      // - admin / secrétaire ➔ ok
+      // - avocat   ➔ idAvocat == uid
+      // - client   ➔ idClient == uid ET statut == 'programmé'
+      allow delete: if request.auth != null && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'secretaire' ||
+        (request.auth.token.role == 'avocat' && resource.data.idAvocat == request.auth.uid) ||
+        (request.auth.token.role == 'client' && resource.data.idClient == request.auth.uid && resource.data.statut == 'programmé')
+      );
+    }
+  }
+}

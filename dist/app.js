@@ -1,0 +1,43 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const CabinetRoutes_1 = __importDefault(require("./routes/CabinetRoutes"));
+const DossierClientRoutes_1 = __importDefault(require("./routes/DossierClientRoutes"));
+const DocumentRoutes_1 = __importDefault(require("./routes/DocumentRoutes"));
+const FactureRoutes_1 = __importDefault(require("./routes/FactureRoutes"));
+const RendezVousRoutes_1 = __importDefault(require("./routes/RendezVousRoutes"));
+const UtilisateurRoutes_1 = __importDefault(require("./routes/UtilisateurRoutes"));
+const CalendrierRoutes_1 = __importDefault(require("./routes/CalendrierRoutes"));
+const ClientRoutes_1 = __importDefault(require("./routes/ClientRoutes"));
+const SecretaireRoutes_1 = __importDefault(require("./routes/SecretaireRoutes"));
+const AdministrateurRoutes_1 = __importDefault(require("./routes/AdministrateurRoutes"));
+const AvocatRoutes_1 = __importDefault(require("./routes/AvocatRoutes"));
+const ContactRoutes_1 = __importDefault(require("./routes/ContactRoutes"));
+const errorHandler_1 = require("./middlewares/errorHandler");
+const app = (0, express_1.default)();
+const port = 3000;
+app.use(express_1.default.json());
+app.use((0, cors_1.default)());
+app.use('/api/dossiers', DossierClientRoutes_1.default);
+app.use('/api/documents', DocumentRoutes_1.default);
+app.use('/api/cabinets', CabinetRoutes_1.default);
+app.use('/api/factures', FactureRoutes_1.default);
+app.use('/api/rendezvous', RendezVousRoutes_1.default);
+app.use('/api/utilisateurs', UtilisateurRoutes_1.default);
+app.use('/api/calendrier', CalendrierRoutes_1.default);
+app.use('/api/clients', ClientRoutes_1.default);
+app.use('/api/secretaires', SecretaireRoutes_1.default);
+app.use('/api/administrateurs', AdministrateurRoutes_1.default);
+app.use('/api/avocats', AvocatRoutes_1.default);
+app.use('./api/contact', ContactRoutes_1.default);
+app.use(errorHandler_1.errorHandler);
+app.get('/', (req, res) => {
+    res.send('Bienvenue dans le système de gestion du cabinet !');
+});
+app.listen(port, () => {
+    console.log(`Serveur démarré sur http://localhost:${port}`);
+});
