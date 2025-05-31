@@ -68,6 +68,7 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
-# Add these lines to your .gitignore file
-echo "src/config/*.json" >> .gitignore
-echo "dist/config/*.json" >> .gitignore
+
+# Ignorer tous les fichiers JSON de credentials admin SDK
+src/config/gestion-cabinet-avocat-firebase-adminsdk-*.json
+dist/config/gestion-cabinet-avocat-firebase-adminsdk-*.json
