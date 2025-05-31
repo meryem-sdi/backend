@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const AvocatController_1 = require("../controllers/AvocatController");
+const router = (0, express_1.Router)();
+router.post('/', AvocatController_1.AvocatController.create);
+router.get('/', AvocatController_1.AvocatController.getAll);
+router.get('/:id', AvocatController_1.AvocatController.getById);
+router.put('/:id', AvocatController_1.AvocatController.update);
+router.delete('/:id', AvocatController_1.AvocatController.delete);
+exports.default = router;
